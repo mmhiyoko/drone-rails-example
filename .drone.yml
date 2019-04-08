@@ -11,6 +11,12 @@ steps:
     - bundle install
     - bundle exec rspec
 
+- name: notify-slack
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: webhook
+
 services:
 - name: db
   image: mysql:5.7

@@ -1,0 +1,22 @@
+kind: pipeline
+name: default
+
+steps:
+- name: spec
+  image: ruby:2.6.1
+  environment:
+    DATABASE_HOST: 'db'
+    DATABASE_PORT: 3306
+  commands:
+    - bundle install
+    - bundle exec rspec
+
+services:
+- name: db
+  image: mysql:5.7
+  environment:
+    MYSQL_DATABASE: 'drone_example_test'
+    MYSQL_USER: 'drone_example_test'
+    MYSQL_PASSWORD: 'drone_example'
+    MYSQL_RANDOM_ROOT_PASSWORD: true
+    TZ: 'Asia/Tokyo'

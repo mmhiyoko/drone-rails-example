@@ -1,0 +1,29 @@
+default: &default
+  adapter: mysql2
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  charset: utf8mb4
+  collation: utf8mb4_bin
+  encoding: utf8mb4
+  timeout: 5000
+
+development:
+  <<: *default
+  database: 'drone_example_dev'
+  username: 'drone_example_dev'
+  password: 'drone_example'
+  host:     <%= ENV['DATABASE_HOST'] || '127.0.0.1' %>
+  port:     <%= ENV['DATABASE_PORT'] || 3316 %>
+
+test:
+  <<: *default
+  database: 'drone_example_test'
+  username: 'drone_example_test'
+  password: 'drone_example'
+  host:     <%= ENV['DATABASE_HOST'] || '127.0.0.1' %>
+  port:     <%= ENV['DATABASE_PORT'] || 3317 %>
+
+production:
+  <<: *default
+  database: 'drone_example_production'
+  username: <%= ENV['DATABASE_USER'] %>
+  username: <%= ENV['DATABASE_PASSOWRD'] %>

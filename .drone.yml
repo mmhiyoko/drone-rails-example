@@ -1,54 +1,58 @@
+---
 kind: pipeline
 name: default
+
+platform:
+  os: linux
+  arch: amd64
 
 steps:
 - name: restore-cache
   image: plugins/volume-cache
+  settings:
+    mount:
+    - ./vendor/bundle
+    - ./vendor/bin
+    restore: true
   volumes:
   - name: cache
     path: /cache
-  settings:
-    restore: true
-    mount:
-      - ./vendor/bundle
 
 - name: bundle-install
   image: ruby:2.6.1
-  depends_on:
-    - restore-cache
   commands:
-    - bundle install --path vendor/bundle --clean
+  - bundle install --path=vendor/bundle --binstubs=vendor/bin --clean
+  environment:
+    RAILS_ENV: test
 
 - name: rubocop
   image: ruby:2.6.1
-  depends_on:
-    - bundle-install
   commands:
-    - bundle exec rubocop -R -fs app spec
-    - bundle exec rspec
+  - bundle check --path=vendor/bundle
+  - bundle exec rubocop -R -fs app spec
+  environment:
+    RAILS_ENV: test
 
 - name: rspec
   image: ruby:2.6.1
-  depends_on:
-    - bundle-install
-  environment:
-    DATABASE_HOST: 'db'
-    DATABASE_PORT: 3306
   commands:
-    - bundle exec rspec
+  - bundle check --path=vendor/bundle
+  - bundle exec rspec
+  environment:
+    DATABASE_HOST: db
+    DATABASE_PORT: 3306
+    RAILS_ENV: test
 
 - name: rebuild-cache
   image: plugins/volume-cache
+  settings:
+    mount:
+    - ./vendor/bundle
+    - ./vendor/bin
+    rebuild: true
   volumes:
   - name: cache
     path: /cache
-  depends_on:
-    - rubocop
-    - rspec
-  settings:
-    rebuild: true
-    mount:
-      - ./vendor/bundle
 
 - name: notify-slack
   image: plugins/slack
@@ -56,17 +60,19 @@ steps:
     webhook:
       from_secret: webhook
 
+services:
+- name: db
+  image: mysql:5.7
+  environment:
+    MYSQL_DATABASE: drone_example_test
+    MYSQL_PASSWORD: drone_example
+    MYSQL_RANDOM_ROOT_PASSWORD: true
+    MYSQL_USER: drone_example_test
+    TZ: Asia/Tokyo
+
 volumes:
 - name: cache
   host:
     path: /tmp/cache/drone-rails-example
 
-services:
-- name: db
-  image: mysql:5.7
-  environment:
-    MYSQL_DATABASE: 'drone_example_test'
-    MYSQL_USER: 'drone_example_test'
-    MYSQL_PASSWORD: 'drone_example'
-    MYSQL_RANDOM_ROOT_PASSWORD: true
-    TZ: 'Asia/Tokyo'
+...

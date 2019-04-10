@@ -24,6 +24,8 @@ steps:
   - bundle install --path=vendor/bundle --binstubs=vendor/bin --clean
   environment:
     RAILS_ENV: test
+  depends_on:
+  - restore-cache
 
 - name: rubocop
   image: ruby:2.6.1
@@ -32,6 +34,8 @@ steps:
   - bundle exec rubocop -R -fs app spec
   environment:
     RAILS_ENV: test
+  depends_on:
+  - bundle-install
 
 - name: rspec
   image: ruby:2.6.1
@@ -42,6 +46,8 @@ steps:
     DATABASE_HOST: db
     DATABASE_PORT: 3306
     RAILS_ENV: test
+  depends_on:
+  - bundle-install
 
 - name: rebuild-cache
   image: plugins/volume-cache
@@ -53,12 +59,17 @@ steps:
   volumes:
   - name: cache
     path: /cache
+  depends_on:
+  - bundle-install
 
 - name: notify-slack
   image: plugins/slack
   settings:
     webhook:
       from_secret: webhook
+  depends_on:
+  - rubocop
+  - rspec
 
 services:
 - name: db

@@ -2,21 +2,46 @@ kind: pipeline
 name: default
 
 steps:
+- name: restore-cache
+  image: plugins/volume-cache
+  volumes:
+  - name: cache
+    path: /cache
+  settings:
+    restore: true
+    mount:
+      - ./vendor/bundle
+
 - name: spec
   image: ruby:2.6.1
   environment:
     DATABASE_HOST: 'db'
     DATABASE_PORT: 3306
   commands:
-    - bundle install
+    - bundle install --path vendor/bundle --clean
     - bundle exec rubocop -R -fs app spec
     - bundle exec rspec
+
+- name: rebuild-cache
+  image: plugins/volume-cache
+  volumes:
+  - name: cache
+    path: /cache
+  settings:
+    rebuild: true
+    mount:
+      - ./vendor/bundle
 
 - name: notify-slack
   image: plugins/slack
   settings:
     webhook:
       from_secret: webhook
+
+volumes:
+- name: cache
+  host:
+    path: /tmp/cache/drone-rails-example
 
 services:
 - name: db

@@ -9,6 +9,7 @@ steps:
     DATABASE_PORT: 3306
   commands:
     - bundle install
+    - bundle exec rubocop -R -fs app spec
     - bundle exec rspec
 
 - name: notify-slack

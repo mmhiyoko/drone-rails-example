@@ -12,14 +12,29 @@ steps:
     mount:
       - ./vendor/bundle
 
-- name: spec
+- name: bundle-install
   image: ruby:2.6.1
+  depends_on:
+    - restore-cache
+  commands:
+    - bundle install --path vendor/bundle --clean
+
+- name: rubocop
+  image: ruby:2.6.1
+  depends_on:
+    - bundle-install
+  commands:
+    - bundle exec rubocop -R -fs app spec
+    - bundle exec rspec
+
+- name: rspec
+  image: ruby:2.6.1
+  depends_on:
+    - bundle-install
   environment:
     DATABASE_HOST: 'db'
     DATABASE_PORT: 3306
   commands:
-    - bundle install --path vendor/bundle --clean
-    - bundle exec rubocop -R -fs app spec
     - bundle exec rspec
 
 - name: rebuild-cache
@@ -27,6 +42,9 @@ steps:
   volumes:
   - name: cache
     path: /cache
+  depends_on:
+    - rubocop
+    - rspec
   settings:
     rebuild: true
     mount:

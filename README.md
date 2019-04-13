@@ -13,7 +13,7 @@ docker-compose up -d # start db for test
 bundle exec rspec
 ```
 
-## Test wit [drone.io](https://docs.drone.io/)
+## Test with [drone.io](https://docs.drone.io/)
 
 - pre requrements: [drone cli installation](https://docs.drone.io/cli/install/)
 
